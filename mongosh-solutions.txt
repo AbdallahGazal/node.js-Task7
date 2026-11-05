@@ -1,0 +1,210 @@
+-----1-----
+
+db.createCollection(
+  "books",
+  {
+    validator:{
+      $and: [
+        {title:{
+          $type:"string"
+        }}
+      ]
+    }
+  }
+)
+
+
+-----2-----
+
+db.authors.insertOne(
+  {
+    name: "Abdallah",
+    nationality: "syrian"
+  }
+)
+
+-----3-----
+
+db.createCollection(
+  "logs",
+  {
+    capped: true,
+    size: 1024
+  }
+)
+
+-----4-----
+
+db.books.createIndex({title: 1})
+
+-----5-----
+
+db.books.insertOne({
+  title: "Book1",
+  author: "Ali",
+  year: 1937,
+  genres: ["Fantasy", "Adventure"]
+})
+
+-----6-----
+
+db.books.insertMany([
+  {
+  title: "Book1",
+  author: "Ali",
+  year: 1937,
+  genres: ["Fantasy", "Adventure"]
+  },
+  {
+  title: "Book1",
+  author: "Ali",
+  year: 1937,
+  genres: ["Fantasy", "Adventure"]
+  },
+  {
+  title: "Book1",
+  author: "Ali",
+  year: 1937,
+  genres: ["Fantasy", "Adventure"]
+  }
+])
+
+-----7-----
+
+db.logs.insertOne({
+  book_id: ObjectId("6aec49510d2e66e660920c96"),
+  action: "borrowed"
+})
+
+-----8-----
+
+db.books.updateOne({title: "Future"},{
+  $set: {
+    year: 2022
+  }
+})
+
+-----9-----
+
+db.books.findOne({
+  title: "Brave New World"
+})
+
+-----10-----
+
+db.books.find({
+  $and: [
+    {year: {
+      $gt: 1990
+    }},
+    {year: {
+      $lt: 2010
+    }}
+  ]
+})
+
+-----11-----
+
+db.books.find({
+  genres: {
+    $elemMatch: {
+      $eq: "Science Fiction"
+    }
+  }
+})
+
+-----12-----
+
+db.books.find().skip(2).limit(3).sort({year: -1})
+
+-----13-----
+
+db.books.find({
+  year: {$type: 16}
+})
+
+-----14-----
+
+db.books.find({
+  $nor: [
+    {genres: {
+      $elemMatch:{
+        $eq: "Horror"
+      }
+    }},
+    {genres: {
+      $elemMatch:{
+        $eq: "Science Fiction"
+      }
+    }}
+  ]
+})
+
+-----15-----
+
+db.books.deleteMany({
+  year: {
+    $lt: 2000
+  }
+})
+
+-----16-----
+
+db.books.aggregate([
+  {$match: {
+    year: {$gt: 2000}
+  }},
+  {$sort: {
+    year: -1
+  }}
+])
+
+-----17-----
+
+db.books.aggregate([
+  {$match :{
+    year: {$gt: 2000}
+  }},
+  {$project:{
+    title:1,
+    author:1,
+    year:1,
+    _id:0
+  }}
+])
+
+-----18-----
+
+db.books.aggregate([
+  {$unwind: {
+    path: "$genres"
+  }},
+  {$project:{
+    title: 1,
+    genres: 1,
+    _id:0
+  }}
+])
+
+-----19-----
+
+db.logs.aggregate([
+  {$lookup:{
+    localField:"book_id",
+    from:"books",
+    foreignField:"_id",
+    as:"book_details",
+    pipeline: [
+      {$project: {
+        title: 1,
+        author: 1,
+        year: 1,
+        _id: 0
+      }}
+    ]
+  }},
+  {$project:{
+    _id:0,
+    book_id:0,
+  }}
+])
